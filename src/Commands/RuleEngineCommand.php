@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Thuraaung\RuleEngine\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class RuleEngineCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-rule-engine';
 
     public $description = 'My command';
 
