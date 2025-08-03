@@ -2,10 +2,10 @@
 
 namespace Thuraaung\RuleEngine\Collections;
 
-use Thuraaung\RuleEngine\Enums\EvaluationLogic;
 use Illuminate\Support\Collection;
 use Thuraaung\RuleEngine\Dtos\EvaluationResult;
 use Thuraaung\RuleEngine\Dtos\MultiGroupEvaluationResult;
+use Thuraaung\RuleEngine\Enums\EvaluationLogic;
 
 class GroupResultsCollection extends Collection
 {
@@ -31,9 +31,9 @@ class GroupResultsCollection extends Collection
     public function toMultiGroupResult(EvaluationLogic $logic = EvaluationLogic::ALL): MultiGroupEvaluationResult
     {
         $passed = match ($logic) {
-            EvaluationLogic::ALL => $this->every(fn($r) => $r->passed()),
-            EvaluationLogic::ANY => $this->contains(fn($r) => $r->passed()),
-            EvaluationLogic::FAIL_FAST => $this->every(fn($r) => $r->passed()),
+            EvaluationLogic::ALL => $this->every(fn ($r) => $r->passed()),
+            EvaluationLogic::ANY => $this->contains(fn ($r) => $r->passed()),
+            EvaluationLogic::FAIL_FAST => $this->every(fn ($r) => $r->passed()),
             default => false,
         };
 
@@ -50,7 +50,7 @@ class GroupResultsCollection extends Collection
             passed: false,
             groupResults: collect($this->all()),
             context: $this->context,
-            error: __("rule-engine::messages.rule_group_failed", ['group' => $groupName])
+            error: __('rule-engine::messages.rule_group_failed', ['group' => $groupName])
         );
     }
 

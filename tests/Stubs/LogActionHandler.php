@@ -9,7 +9,7 @@ class LogActionHandler implements ActionHandlerInterface
 {
     public function handle(array $actionValue, array $context): ActionResult
     {
-        if (!isset($actionValue['message'])) {
+        if (! isset($actionValue['message'])) {
             return ActionResult::failure('Message is required for logging');
         }
 

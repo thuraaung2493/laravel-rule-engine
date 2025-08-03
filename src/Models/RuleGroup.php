@@ -2,10 +2,10 @@
 
 namespace Thuraaung\RuleEngine\Models;
 
-use Thuraaung\RuleEngine\Enums\EvaluationLogic;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Thuraaung\RuleEngine\Enums\EvaluationLogic;
 
 class RuleGroup extends Model
 {

@@ -16,6 +16,23 @@ class EvaluationResult
         $this->context = $context ?? collect();
     }
 
+    public static function create(bool $passed, Collection $rules, Collection $context): self
+    {
+        return new self(
+            passed: $passed,
+            rules: $rules,
+            context: $context
+        );
+    }
+
+    public static function error(string $error): self
+    {
+        return new self(
+            passed: false,
+            error: $error
+        );
+    }
+
     public function passed(): bool
     {
         return $this->passed;
@@ -24,14 +41,14 @@ class EvaluationResult
     public function failedRules(): Collection
     {
         return $this->rules
-            ->filter(fn($rule) => !$rule['passed'])
+            ->filter(fn ($rule) => ! $rule['passed'])
             ->values();
     }
 
     public function rulesWithExceptions(): Collection
     {
         return $this->rules
-            ->filter(fn($rule) => !empty($rule['error']))
+            ->filter(fn ($rule) => ! empty($rule['error']))
             ->values();
     }
 
@@ -39,14 +56,14 @@ class EvaluationResult
     {
         return $this->failedRules()
             ->map(function ($rule) {
-                if (!empty($rule['error'])) {
+                if (! empty($rule['error'])) {
                     return __('rule-engine::messages.rule_failed_error', [
                         'rule' => $rule['rule'],
                         'error' => $rule['error'],
                     ]);
                 }
 
-                if (!empty($rule['error_message'])) {
+                if (! empty($rule['error_message'])) {
                     return __('rule-engine::messages.rule_failed', [
                         'rule' => $rule['rule'],
                         'message' => $rule['error_message'],
@@ -68,9 +85,9 @@ class EvaluationResult
     public function extractActionsFromResult(): Collection
     {
         return $this->rules
-            ->filter(fn($rule) => $rule['passed'])
-            ->filter(fn($rule) => $rule['action_type'] !== null)
-            ->map(fn($rule) => [
+            ->filter(fn ($rule) => $rule['passed'])
+            ->filter(fn ($rule) => $rule['action_type'] !== null)
+            ->map(fn ($rule) => [
                 'action_type' => $rule['action_type'],
                 'action_value' => $rule['action_value'],
             ])

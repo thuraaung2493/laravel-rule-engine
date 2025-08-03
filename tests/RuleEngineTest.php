@@ -1,12 +1,15 @@
 <?php
 
 use Thuraaung\RuleEngine\Actions\RuleActionHandler;
-use Thuraaung\RuleEngine\RuleEngine;
-use Thuraaung\RuleEngine\RuleEvaluator;
+use Thuraaung\RuleEngine\Dtos\EvaluationOptions;
+use Thuraaung\RuleEngine\Dtos\RuleResult;
+use Thuraaung\RuleEngine\Enums\EvaluationLogic;
 use Thuraaung\RuleEngine\Models\Rule;
 use Thuraaung\RuleEngine\Models\RuleGroup;
-use Thuraaung\RuleEngine\Enums\EvaluationLogic;
-use Thuraaung\RuleEngine\Dtos\EvaluationOptions;
+use Thuraaung\RuleEngine\RuleEngine;
+use Thuraaung\RuleEngine\RuleEvaluator;
+
+uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 describe('RuleEngine', function () {
     beforeEach(function () {
@@ -25,20 +28,15 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
 
-        Rule::factory()->create([
+        $rule = Rule::factory()->create([
             'rule_group_id' => $group->id,
             'name' => 'test_rule',
             'active' => true,
+            'action_type' => 'log',
+            'action_value' => ['level' => 'info'],
         ]);
 
-        $evaluatedRules = [
-            [
-                'rule' => 'test_rule',
-                'passed' => true,
-                'action_type' => 'log',
-                'action_value' => ['level' => 'info'],
-            ],
-        ];
+        $evaluatedRules = collect([RuleResult::create(true, $rule, null)]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -71,7 +69,7 @@ describe('RuleEngine', function () {
         $result = $this->engine->evaluateGroup($options);
 
         expect($result->passed())->toBe(false);
-        expect($result->error)->toBe("evaluateGroup expects exactly one groupName in options.");
+        expect($result->error)->toBe('evaluateGroup expects exactly one groupName in options.');
     });
 
     it('fails when group not found', function () {
@@ -92,10 +90,13 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
 
-        $evaluatedRules = [
-            ['rule' => 'rule1', 'passed' => true, 'action_type' => null],
-            ['rule' => 'rule2', 'passed' => false, 'action_type' => null],
-        ];
+        $rule1 = Rule::factory()->active()->noAction()->create(['rule_group_id' => $group->id]);
+        $rule2 = Rule::factory()->active()->noAction()->create(['rule_group_id' => $group->id]);
+
+        $evaluatedRules = collect([
+            RuleResult::create(false, $rule1, null),
+            RuleResult::create(true, $rule2, null),
+        ]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -118,10 +119,13 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ANY,
         ]);
 
-        $evaluatedRules = [
-            ['rule' => 'rule1', 'passed' => false, 'action_type' => null],
-            ['rule' => 'rule2', 'passed' => true, 'action_type' => null],
-        ];
+        $rule1 = Rule::factory()->active()->noAction()->create(['rule_group_id' => $group->id]);
+        $rule2 = Rule::factory()->active()->noAction()->create(['rule_group_id' => $group->id]);
+
+        $evaluatedRules = collect([
+            RuleResult::create(false, $rule1, null),
+            RuleResult::create(true, $rule2, null),
+        ]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -144,10 +148,13 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ANY,
         ]);
 
-        $evaluatedRules = [
-            ['rule' => 'rule1', 'passed' => false, 'action_type' => null],
-            ['rule' => 'rule2', 'passed' => false, 'action_type' => null],
-        ];
+        $rule1 = Rule::factory()->active()->noAction()->make(['rule_group_id' => $group->id]);
+        $rule2 = Rule::factory()->active()->noAction()->make(['rule_group_id' => $group->id]);
+
+        $evaluatedRules = collect([
+            RuleResult::create(false, $rule1, null),
+            RuleResult::create(false, $rule2, null),
+        ]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -170,10 +177,13 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::FAIL_FAST,
         ]);
 
-        $evaluatedRules = [
-            ['rule' => 'rule1', 'passed' => true, 'action_type' => null],
-            ['rule' => 'rule2', 'passed' => true, 'action_type' => null],
-        ];
+        $rule1 = Rule::factory()->active()->noAction()->make(['rule_group_id' => $group->id]);
+        $rule2 = Rule::factory()->active()->noAction()->make(['rule_group_id' => $group->id]);
+
+        $evaluatedRules = collect([
+            RuleResult::create(true, $rule1, null),
+            RuleResult::create(true, $rule2, null),
+        ]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -196,26 +206,15 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
 
-        $evaluatedRules = [
-            [
-                'rule' => 'rule1',
-                'passed' => true,
-                'action_type' => 'email',
-                'action_value' => ['to' => 'test@example.com'],
-            ],
-            [
-                'rule' => 'rule2',
-                'passed' => false,
-                'action_type' => 'sms',
-                'action_value' => ['number' => '123'],
-            ],
-            [
-                'rule' => 'rule3',
-                'passed' => true,
-                'action_type' => null,
-                'action_value' => null,
-            ],
-        ];
+        $rule1 = Rule::factory()->active()->withAction('email', ['to' => 'test@example.com'])->for($group)->create();
+        $rule2 = Rule::factory()->active()->withAction('sms', ['number' => '123'])->for($group)->create();
+        $rule3 = Rule::factory()->active()->noAction()->for($group)->create();
+
+        $evaluatedRules = collect([
+            RuleResult::create(true, $rule1, null),
+            RuleResult::create(false, $rule2, null),
+            RuleResult::create(true, $rule3, null),
+        ]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -246,8 +245,11 @@ describe('RuleEngine', function () {
             'priority' => 20,
         ]);
 
-        $evaluatedRules1 = [['rule' => 'rule1', 'passed' => true, 'action_type' => null]];
-        $evaluatedRules2 = [['rule' => 'rule2', 'passed' => true, 'action_type' => null]];
+        $rule1 = Rule::factory()->active()->noAction()->for($group1)->create();
+        $rule2 = Rule::factory()->active()->noAction()->for($group2)->create();
+
+        $evaluatedRules1 = collect([RuleResult::create(true, $rule1)]);
+        $evaluatedRules2 = collect([RuleResult::create(true, $rule2)]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->twice()
@@ -283,7 +285,9 @@ describe('RuleEngine', function () {
             'priority' => 20,
         ]);
 
-        $evaluatedRules1 = [['rule' => 'rule1', 'passed' => false, 'action_type' => null]];
+        $rule1 = Rule::factory()->active()->noAction()->for($group2)->make();
+
+        $evaluatedRules1 = collect([RuleResult::create(false, $rule1)]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -301,7 +305,7 @@ describe('RuleEngine', function () {
         $result = $this->engine->evaluateGroups($options);
 
         expect($result->passed)->toBe(false);
-        expect($result->groupResults)->toHaveCount(1); // Only first group evaluated
+        expect($result->groupResults)->toHaveCount(1);
         expect($result->groupResults)->toHaveKey('group2');
     });
 
@@ -318,7 +322,9 @@ describe('RuleEngine', function () {
             'priority' => 20,
         ]);
 
-        $evaluatedRules1 = [['rule' => 'rule1', 'passed' => true, 'action_type' => null]];
+        $rule1 = Rule::factory()->active()->noAction()->for($group2)->make();
+
+        $evaluatedRules1 = collect([RuleResult::create(true, $rule1)]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -336,7 +342,7 @@ describe('RuleEngine', function () {
         $result = $this->engine->evaluateGroups($options);
 
         expect($result->passed)->toBe(true);
-        expect($result->groupResults)->toHaveCount(1); // Only first group evaluated
+        expect($result->groupResults)->toHaveCount(1);
         expect($result->groupResults)->toHaveKey('group2');
     });
 
@@ -370,7 +376,7 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
 
-        $evaluatedRules = [];
+        $evaluatedRules = collect();
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -384,8 +390,9 @@ describe('RuleEngine', function () {
         );
 
         $result = $this->engine->evaluateGroup($options);
+
         expect($result->passed())->toBe(true);
-        expect($result->rules)->toBe([]);
+        expect($result->rules)->toHaveCount(0);
     });
 
     it('handles evaluation with empty data', function () {
@@ -394,9 +401,9 @@ describe('RuleEngine', function () {
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
 
-        $evaluatedRules = [
-            ['rule' => 'rule1', 'passed' => true, 'action_type' => null],
-        ];
+        $rule1 = Rule::factory()->active()->noAction([])->for($group)->create();
+
+        $evaluatedRules = collect([RuleResult::create(true, $rule1)]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -409,6 +416,8 @@ describe('RuleEngine', function () {
             groupNames: ['test_group'],
             data: []
         );
+
+        $this->actionHandler->shouldReceive('handle')->never();
 
         $result = $this->engine->evaluateGroup($options);
         expect($result->passed())->toBe(true);
@@ -447,8 +456,11 @@ describe('RuleEngine', function () {
             'priority' => 20,
         ]);
 
-        $evaluatedRules1 = [['rule' => 'rule1', 'passed' => true, 'action_type' => null]];
-        $evaluatedRules2 = [['rule' => 'rule2', 'passed' => false, 'action_type' => null]];
+        $rule1 = Rule::factory()->active()->noAction()->for($group1)->create();
+        $rule2 = Rule::factory()->active()->noAction()->for($group2)->create();
+
+        $evaluatedRules1 = collect([RuleResult::create(true, $rule1)]);
+        $evaluatedRules2 = collect([RuleResult::create(false, $rule2)]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->twice()
@@ -466,26 +478,28 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveCount(2);
     });
 
-    it('handles multiple actions for a single rule', function () {
+    it('handles multiple actions for a single rule group', function () {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
 
-        $evaluatedRules = [
-            [
-                'rule' => 'rule1',
-                'passed' => true,
-                'action_type' => 'email',
-                'action_value' => ['to' => 'test@example.com'],
-            ],
-            [
-                'rule' => 'rule1',
-                'passed' => true,
-                'action_type' => 'sms',
-                'action_value' => ['number' => '123456'],
-            ],
-        ];
+        $rule1 = Rule::factory()->active()->create([
+            'rule_group_id' => $group->id,
+            'action_type' => 'email',
+            'action_value' => ['to' => 'test@example.com'],
+        ]);
+
+        $rule2 = Rule::factory()->active()->create([
+            'rule_group_id' => $group->id,
+            'action_type' => 'sms',
+            'action_value' => ['number' => '123456'],
+        ]);
+
+        $evaluatedRules = collect([
+            RuleResult::create(true, $rule1, null),
+            RuleResult::create(true, $rule2, null),
+        ]);
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
@@ -494,8 +508,8 @@ describe('RuleEngine', function () {
         $this->actionHandler->shouldReceive('handle')
             ->twice()
             ->withArgs(function ($type, $value) {
-                return (($type === 'email' && $value === ['to' => 'test@example.com']) ||
-                    ($type === 'sms' && $value === ['number' => '123456']));
+                return ($type === 'email' && $value === ['to' => 'test@example.com']) ||
+                    ($type === 'sms' && $value === ['number' => '123456']);
             });
 
         $options = new EvaluationOptions(

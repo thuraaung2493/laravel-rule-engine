@@ -4,21 +4,21 @@ use Thuraaung\RuleEngine\Dtos\EvaluationResult;
 
 describe('EvaluationResult DTO', function () {
     it('creates with all parameters', function () {
-        $rules = [
+        $rules = collect([
             ['rule' => 'rule1', 'passed' => true],
             ['rule' => 'rule2', 'passed' => false],
-        ];
+        ]);
 
         $result = new EvaluationResult(
             passed: true,
-            rules: $rules,
-            context: ['key' => 'value'],
+            rules: collect($rules),
+            context: collect(['key' => 'value']),
             error: 'Some error'
         );
 
         expect($result->passed)->toBe(true);
-        expect($result->rules)->toBe($rules);
-        expect($result->context)->toBe(['key' => 'value']);
+        expect($result->rules->toArray())->toBe($rules->toArray());
+        expect($result->context->toArray())->toBe(['key' => 'value']);
         expect($result->error)->toBe('Some error');
     });
 
@@ -26,8 +26,8 @@ describe('EvaluationResult DTO', function () {
         $result = new EvaluationResult(passed: false);
 
         expect($result->passed)->toBe(false);
-        expect($result->rules)->toBe([]);
-        expect($result->context)->toBe([]);
+        expect($result->rules->toArray())->toBe([]);
+        expect($result->context->toArray())->toBe([]);
         expect($result->error)->toBeNull();
     });
 
@@ -46,7 +46,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule3', 'passed' => false],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
         $failedRules = $result->failedRules();
 
         expect($failedRules)->toHaveCount(2);
@@ -61,7 +61,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule3', 'passed' => false, 'error' => ''],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
         $rulesWithExceptions = $result->rulesWithExceptions();
 
         expect($rulesWithExceptions)->toHaveCount(1);
@@ -73,7 +73,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule1', 'passed' => false, 'error' => 'Syntax error', 'error_message' => ''],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
 
         $messages = $result->formatFailedRulesMessages();
         expect($messages)->toHaveCount(1);
@@ -85,7 +85,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule1', 'passed' => false, 'error' => '', 'error_message' => 'Custom error'],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
 
         $messages = $result->formatFailedRulesMessages();
         expect($messages[0])->toBe('Rule [rule1] failed: Custom error');
@@ -96,7 +96,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule1', 'passed' => false, 'error' => '', 'error_message' => ''],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
 
         $messages = $result->formatFailedRulesMessages();
         expect($messages[0])->toBe('Rule [rule1] failed, but no error message provided.');
@@ -108,7 +108,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule2', 'passed' => false, 'error' => '', 'error_message' => 'Error 2'],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
 
         $string = $result->formatFailedRulesAsString();
         expect($string)->toBe("Rule [rule1] failed: Error 1\nRule [rule2] failed: Error 2");
@@ -120,10 +120,10 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule2', 'passed' => false, 'error' => '', 'error_message' => 'Error 2'],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
 
         $string = $result->formatFailedRulesAsString(' | ');
-        expect($string)->toBe("Rule [rule1] failed: Error 1 | Rule [rule2] failed: Error 2");
+        expect($string)->toBe('Rule [rule1] failed: Error 1 | Rule [rule2] failed: Error 2');
     });
 
     it('extracts actions from passed rules', function () {
@@ -134,7 +134,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule4', 'passed' => true, 'action_type' => 'log', 'action_value' => ['level' => 'info']],
         ];
 
-        $result = new EvaluationResult(passed: true, rules: $rules);
+        $result = new EvaluationResult(passed: true, rules: collect($rules));
         $actions = $result->extractActionsFromResult();
 
         expect($actions)->toHaveCount(2);
@@ -148,7 +148,7 @@ describe('EvaluationResult DTO', function () {
             ['rule' => 'rule2', 'passed' => true, 'action_type' => null, 'action_value' => null],
         ];
 
-        $result = new EvaluationResult(passed: false, rules: $rules);
+        $result = new EvaluationResult(passed: false, rules: collect($rules));
         $actions = $result->extractActionsFromResult();
 
         expect($actions)->toHaveCount(0);

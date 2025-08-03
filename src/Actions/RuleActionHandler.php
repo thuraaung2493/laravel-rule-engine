@@ -2,8 +2,8 @@
 
 namespace Thuraaung\RuleEngine\Actions;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class RuleActionHandler
 {
@@ -14,8 +14,9 @@ class RuleActionHandler
 
     public function handle(string $actionType, array $actionValue, Collection $context): Collection
     {
-        if (!$this->registry->has($actionType)) {
+        if (! $this->registry->has($actionType)) {
             $this->handleUnknownAction($actionType, $actionValue);
+
             return $context;
         }
 
@@ -28,9 +29,11 @@ class RuleActionHandler
             }
 
             $this->handleActionError($actionType, $result->error);
+
             return $context;
         } catch (\Throwable $e) {
             $this->handleActionError($actionType, $e->getMessage());
+
             return $context;
         }
     }
@@ -48,7 +51,7 @@ class RuleActionHandler
 
     protected function handleActionError(string $type, ?string $error): void
     {
-        $message = "Action '{$type}' failed" . ($error ? ": {$error}" : '');
+        $message = "Action '{$type}' failed".($error ? ": {$error}" : '');
         Log::error($message);
 
         if ($this->throwOnError) {

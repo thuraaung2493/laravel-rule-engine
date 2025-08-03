@@ -1,46 +1,46 @@
 <?php
 
-use Thuraaung\RuleEngine\Dtos\MultiGroupEvaluationResult;
 use Thuraaung\RuleEngine\Dtos\EvaluationResult;
+use Thuraaung\RuleEngine\Dtos\MultiGroupEvaluationResult;
 
 describe('MultiGroupEvaluationResult DTO', function () {
     it('creates with all parameters', function () {
-        $groupResults = [
+        $groupResults = collect([
             'group1' => new EvaluationResult(passed: true),
             'group2' => new EvaluationResult(passed: false),
-        ];
+        ]);
 
         $result = new MultiGroupEvaluationResult(
             passed: false,
             groupResults: $groupResults,
-            context: ['key' => 'value'],
+            context: collect(['key' => 'value']),
             error: 'Some error'
         );
 
         expect($result->passed)->toBe(false);
-        expect($result->groupResults)->toBe($groupResults);
-        expect($result->context)->toBe(['key' => 'value']);
+        expect($result->groupResults->toArray())->toBe($groupResults->toArray());
+        expect($result->context->toArray())->toBe(['key' => 'value']);
         expect($result->error)->toBe('Some error');
     });
 
     it('has default values', function () {
         $result = new MultiGroupEvaluationResult(
             passed: true,
-            groupResults: []
+            groupResults: collect([])
         );
 
         expect($result->passed)->toBe(true);
-        expect($result->groupResults)->toBe([]);
-        expect($result->context)->toBe([]);
+        expect($result->groupResults->toArray())->toBe([]);
+        expect($result->context->toArray())->toBe([]);
         expect($result->error)->toBeNull();
     });
 
     it('returns failed groups', function () {
-        $groupResults = [
+        $groupResults = collect([
             'group1' => new EvaluationResult(passed: true),
             'group2' => new EvaluationResult(passed: false),
             'group3' => new EvaluationResult(passed: false),
-        ];
+        ]);
 
         $result = new MultiGroupEvaluationResult(
             passed: false,
@@ -48,10 +48,10 @@ describe('MultiGroupEvaluationResult DTO', function () {
         );
 
         $failedGroups = $result->failedGroups();
-        expect($failedGroups)->toBe(['group2', 'group3']);
+        expect($failedGroups->toArray())->toBe(['group2', 'group3']);
     });
 
-    it('returns empty array when no failed groups', function () {
+    it('returns empty when no failed groups', function () {
         $groupResults = [
             'group1' => new EvaluationResult(passed: true),
             'group2' => new EvaluationResult(passed: true),
@@ -59,25 +59,25 @@ describe('MultiGroupEvaluationResult DTO', function () {
 
         $result = new MultiGroupEvaluationResult(
             passed: true,
-            groupResults: $groupResults
+            groupResults: collect($groupResults)
         );
 
-        expect($result->failedGroups())->toBe([]);
+        expect($result->failedGroups()->isEmpty())->toBeTrue();
     });
 
     it('checks if has failed groups', function () {
         $passedResult = new MultiGroupEvaluationResult(
             passed: true,
-            groupResults: [
+            groupResults: collect([
                 'group1' => new EvaluationResult(passed: true),
-            ]
+            ])
         );
 
         $failedResult = new MultiGroupEvaluationResult(
             passed: false,
-            groupResults: [
+            groupResults: collect([
                 'group1' => new EvaluationResult(passed: false),
-            ]
+            ])
         );
 
         expect($passedResult->hasFailedGroups())->toBe(false);

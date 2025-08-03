@@ -22,4 +22,18 @@ describe('EvaluationLogic Enum', function () {
             'fail_fast' => 'Fail as soon as any rule fails',
         ]);
     });
+
+    it('can check if a logic is of a specific type', function () {
+        expect(EvaluationLogic::ALL->is(EvaluationLogic::ALL))->toBeTrue();
+        expect(EvaluationLogic::ANY->is(EvaluationLogic::ANY))->toBeTrue();
+        expect(EvaluationLogic::FAIL_FAST->is(EvaluationLogic::FAIL_FAST))->toBeTrue();
+
+        expect(EvaluationLogic::ALL->is('all'))->toBeTrue();
+        expect(EvaluationLogic::ANY->is('any'))->toBeTrue();
+        expect(EvaluationLogic::FAIL_FAST->is('fail_fast'))->toBeTrue();
+
+        expect(EvaluationLogic::ALL->is(EvaluationLogic::ANY))->toBeFalse();
+        expect(EvaluationLogic::ALL->is(EvaluationLogic::FAIL_FAST))->toBeFalse();
+        expect(EvaluationLogic::ANY->is(EvaluationLogic::ALL))->toBeFalse();
+    });
 });

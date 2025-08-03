@@ -12,7 +12,7 @@ class ActionRegistry
 
     public function register(string $actionType, ActionHandlerInterface $handler): void
     {
-        if (!$handler->supports($actionType)) {
+        if (! $handler->supports($actionType)) {
             throw new \InvalidArgumentException(
                 "Handler does not support action type: {$actionType}"
             );
@@ -30,7 +30,7 @@ class ActionRegistry
 
     public function get(string $actionType): ActionHandlerInterface
     {
-        if (!isset($this->handlers[$actionType])) {
+        if (! isset($this->handlers[$actionType])) {
             throw new ActionHandlerNotFoundException($actionType);
         }
 
@@ -51,6 +51,7 @@ class ActionRegistry
     {
         if (isset($this->handlers[$actionType])) {
             unset($this->handlers[$actionType]);
+
             return true;
         }
 

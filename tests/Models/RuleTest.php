@@ -1,8 +1,8 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Thuraaung\RuleEngine\Models\Rule;
 use Thuraaung\RuleEngine\Models\RuleGroup;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 

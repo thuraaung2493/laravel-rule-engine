@@ -29,7 +29,7 @@ class RuleEngineServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(ActionRegistry::class, function ($app) {
-            $registry = new ActionRegistry();
+            $registry = new ActionRegistry;
 
             foreach (config('rule-engine.custom_handlers', []) as $type => $handlerClass) {
                 $handler = $app->make($handlerClass);

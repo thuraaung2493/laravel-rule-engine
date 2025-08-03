@@ -1,9 +1,9 @@
 <?php
 
-use Thuraaung\RuleEngine\Models\RuleGroup;
-use Thuraaung\RuleEngine\Models\Rule;
-use Thuraaung\RuleEngine\Enums\EvaluationLogic;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Thuraaung\RuleEngine\Enums\EvaluationLogic;
+use Thuraaung\RuleEngine\Models\Rule;
+use Thuraaung\RuleEngine\Models\RuleGroup;
 
 uses(RefreshDatabase::class);
 

@@ -19,7 +19,7 @@ class MultiGroupEvaluationResult
     public function failedGroups(): Collection
     {
         return $this->groupResults
-            ->filter(fn(EvaluationResult $result) => !$result->passed())
+            ->filter(fn (EvaluationResult $result) => ! $result->passed())
             ->keys()
             ->values();
     }
