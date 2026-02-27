@@ -1,7 +1,6 @@
 <?php
 
 use Thuraaung\RuleEngine\ExpressionProviders\PhpFunctionsProvider;
-use Thuraaung\RuleEngine\ExpressionProviders\TestPhpFunctionsProvider;
 
 /**
  * Default configuration for the rule engine.
@@ -33,6 +32,5 @@ return [
         PhpFunctionsProvider::class,
 
         // Add other expression providers here
-        TestPhpFunctionsProvider::class,
     ],
 ];

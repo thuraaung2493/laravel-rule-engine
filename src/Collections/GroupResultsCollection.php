@@ -17,20 +17,20 @@ class GroupResultsCollection extends Collection
         $this->context = collect();
     }
 
-    public function addResult(string $groupName, EvaluationResult $result): self
+    public function addResult(string $groupName, EvaluationResult $evaluationResult): self
     {
-        $this->put($groupName, $result);
+        $this->put($groupName, $evaluationResult);
 
-        if ($result->passed()) {
-            $this->context = $this->context->merge($result->context ?? collect());
+        if ($evaluationResult->passed()) {
+            $this->context = $this->context->merge($evaluationResult->context ?? collect());
         }
 
         return $this;
     }
 
-    public function toMultiGroupResult(EvaluationLogic $logic = EvaluationLogic::ALL): MultiGroupEvaluationResult
+    public function toMultiGroupResult(EvaluationLogic $evaluationLogic = EvaluationLogic::ALL): MultiGroupEvaluationResult
     {
-        $passed = match ($logic) {
+        $passed = match ($evaluationLogic) {
             EvaluationLogic::ALL => $this->every(fn ($r) => $r->passed()),
             EvaluationLogic::ANY => $this->contains(fn ($r) => $r->passed()),
             EvaluationLogic::FAIL_FAST => $this->every(fn ($r) => $r->passed()),

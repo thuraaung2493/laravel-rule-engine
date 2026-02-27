@@ -34,28 +34,25 @@ class PhpFunctionsProvider implements ExpressionFunctionProviderInterface
 
     public function getFunctions(): array
     {
-        $functions = collect($this->functions)->map(function (string $function) {
-            return new ExpressionFunction(
-                $function,
-                fn () => $function,
-                fn ($arguments, ...$params) => $function(...$params)
-            );
-        });
+        $functions = collect($this->functions)->map(fn(string $function): \Symfony\Component\ExpressionLanguage\ExpressionFunction => new ExpressionFunction(
+            $function,
+            fn (): string => $function,
+            fn ($arguments, ...$params) => $function(...$params)
+        ));
 
         // Add array_filter with special handling
         $functions->push(
             new ExpressionFunction(
                 'array_filter',
-                fn () => 'array_filter',
-                function ($arguments, $array, $callback) {
+                fn (): string => 'array_filter',
+                function ($arguments, $array, $callback): array {
                     if (! is_array($array)) {
                         return [];
                     }
+
                     try {
-                        return array_filter($array, function ($item) use ($callback) {
-                            return $this->el->evaluate($callback, ['p' => $item]);
-                        });
-                    } catch (\Throwable $e) {
+                        return array_filter($array, fn($item): mixed => $this->el->evaluate($callback, ['p' => $item]));
+                    } catch (\Throwable) {
                         return [];
                     }
                 }

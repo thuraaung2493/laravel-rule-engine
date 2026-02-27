@@ -6,12 +6,12 @@ use Thuraaung\RuleEngine\Models\Rule;
 use Thuraaung\RuleEngine\Models\RuleGroup;
 use Thuraaung\RuleEngine\RuleEvaluator;
 
-describe('RuleEvaluator', function () {
-    beforeEach(function () {
+describe('RuleEvaluator', function (): void {
+    beforeEach(function (): void {
         $this->evaluator = new RuleEvaluator;
     });
 
-    it('evaluates a single rule successfully', function () {
+    it('evaluates a single rule successfully', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'age_check',
             'expression' => 'age >= 18',
@@ -26,7 +26,7 @@ describe('RuleEvaluator', function () {
         expect($result)->toEqual(RuleResult::create(true, $rule));
     });
 
-    it('evaluates a single rule that fails', function () {
+    it('evaluates a single rule that fails', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'age_check',
             'expression' => 'age >= 18',
@@ -43,7 +43,7 @@ describe('RuleEvaluator', function () {
         expect($result->error)->toBeNull();
     });
 
-    it('handles expression evaluation errors', function () {
+    it('handles expression evaluation errors', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'invalid_rule',
             'expression' => 'invalid_variable_name >= 18',
@@ -60,7 +60,7 @@ describe('RuleEvaluator', function () {
         expect($result->error)->toBeString();
     });
 
-    it('evaluates multiple rules in a group', function () {
+    it('evaluates multiple rules in a group', function (): void {
         $group = RuleGroup::factory()->make([
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
@@ -89,7 +89,7 @@ describe('RuleEvaluator', function () {
         expect($results->last()->passed)->toBe(true);
     });
 
-    it('stops evaluation on first failure with FAIL_FAST logic', function () {
+    it('stops evaluation on first failure with FAIL_FAST logic', function (): void {
         $group = RuleGroup::factory()->make([
             'evaluation_logic' => EvaluationLogic::FAIL_FAST,
         ]);
@@ -116,7 +116,7 @@ describe('RuleEvaluator', function () {
         expect($results->first()->passed)->toBe(false);
     });
 
-    it('continues evaluation with other logic types even on failure', function () {
+    it('continues evaluation with other logic types even on failure', function (): void {
         $group = RuleGroup::factory()->make([
             'evaluation_logic' => EvaluationLogic::ANY,
         ]);
@@ -143,7 +143,7 @@ describe('RuleEvaluator', function () {
         expect($results->last()->passed)->toBe(true);
     });
 
-    it('handles empty rule group', function () {
+    it('handles empty rule group', function (): void {
         $group = RuleGroup::factory()->make([
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
@@ -156,7 +156,7 @@ describe('RuleEvaluator', function () {
         expect($results)->toHaveCount(0);
     });
 
-    it('handles complex expressions', function () {
+    it('handles complex expressions', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'complex_check',
             'expression' => '(age >= 18 and country == "US") or (age >= 21 and country == "CA")',
@@ -175,7 +175,7 @@ describe('RuleEvaluator', function () {
         expect($result3->passed)->toBeTrue();
     });
 
-    it('handles missing context variables gracefully', function () {
+    it('handles missing context variables gracefully', function (): void {
         $evaluator = new RuleEvaluator;
 
         $rule = Rule::factory()->make([
@@ -183,12 +183,12 @@ describe('RuleEvaluator', function () {
             'expression' => 'missing_var > 0',
         ]);
 
-        $result = $evaluator->evaluateRule($rule, []);
-        expect($result->passed)->toBeFalse();
-        expect($result->error)->toContain('missing_var');
+        $ruleResult = $evaluator->evaluateRule($rule, []);
+        expect($ruleResult->passed)->toBeFalse();
+        expect($ruleResult->error)->toContain('missing_var');
     });
 
-    it('handles special PHP values in expressions', function () {
+    it('handles special PHP values in expressions', function (): void {
         $evaluator = new RuleEvaluator;
 
         $rule = Rule::factory()->make([
@@ -196,8 +196,8 @@ describe('RuleEvaluator', function () {
             'expression' => 'value === null || value === true || value === false',
         ]);
 
-        $result1 = $evaluator->evaluateRule($rule, ['value' => null]);
-        expect($result1->passed)->toBeTrue();
+        $ruleResult = $evaluator->evaluateRule($rule, ['value' => null]);
+        expect($ruleResult->passed)->toBeTrue();
 
         $result2 = $evaluator->evaluateRule($rule, ['value' => true]);
         expect($result2->passed)->toBeTrue();
@@ -209,7 +209,7 @@ describe('RuleEvaluator', function () {
         expect($result4->passed)->toBeFalse();
     });
 
-    it('evaluates rules with array operations', function () {
+    it('evaluates rules with array operations', function (): void {
         $evaluator = new RuleEvaluator;
 
         $rule = Rule::factory()->make([
@@ -217,11 +217,11 @@ describe('RuleEvaluator', function () {
             'expression' => 'roles[0] == "admin" || permissions contains "edit"',
         ]);
 
-        $result1 = $evaluator->evaluateRule($rule, [
+        $ruleResult = $evaluator->evaluateRule($rule, [
             'roles' => ['admin', 'user'],
             'permissions' => ['view', 'edit', 'delete'],
         ]);
-        expect($result1->passed)->toBeTrue();
+        expect($ruleResult->passed)->toBeTrue();
 
         $result2 = $evaluator->evaluateRule($rule, [
             'roles' => ['user'],
@@ -230,7 +230,7 @@ describe('RuleEvaluator', function () {
         expect($result2->passed)->toBeFalse();
     });
 
-    it('handles syntax errors in expressions', function () {
+    it('handles syntax errors in expressions', function (): void {
         $evaluator = new RuleEvaluator;
 
         $rule = Rule::factory()->make([
@@ -238,12 +238,12 @@ describe('RuleEvaluator', function () {
             'expression' => '!!!invalid!!!syntax!!!', // Invalid syntax
         ]);
 
-        $result = $evaluator->evaluateRule($rule, ['x' => 1]);
-        expect($result->passed)->toBeFalse();
-        expect($result->error)->toBeString();
+        $ruleResult = $evaluator->evaluateRule($rule, ['x' => 1]);
+        expect($ruleResult->passed)->toBeFalse();
+        expect($ruleResult->error)->toBeString();
     });
 
-    it('handles deeply nested objects and arrays', function () {
+    it('handles deeply nested objects and arrays', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'nested_data_rule',
             'expression' => 'user["profile"]["settings"]["notifications"]["email"] == true && user["roles"][0]["level"] > 5',
@@ -270,7 +270,7 @@ describe('RuleEvaluator', function () {
         expect($result->passed)->toBeTrue();
     });
 
-    it('handles recursive array operations', function () {
+    it('handles recursive array operations', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'recursive_array_rule',
             'expression' => 'count(array_filter(permissions, "p > 5")) == 2',
@@ -284,7 +284,7 @@ describe('RuleEvaluator', function () {
         expect($result->passed)->toBeTrue();
     });
 
-    it('handles type juggling edge cases', function () {
+    it('handles type juggling edge cases', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'type_juggling_rule',
             'expression' => 'value1 === "0" && value2 === 0 && value3 === false && value4 === null',
@@ -301,7 +301,7 @@ describe('RuleEvaluator', function () {
         expect($result->passed)->toBeTrue();
     });
 
-    it('handles unicode and special characters in expressions', function () {
+    it('handles unicode and special characters in expressions', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'unicode_rule',
             'expression' => 'name == "João 🚀" && category == "café"',
@@ -316,7 +316,7 @@ describe('RuleEvaluator', function () {
         expect($result->passed)->toBeTrue();
     });
 
-    it('handles complex date and time comparisons', function () {
+    it('handles complex date and time comparisons', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'date_time_rule',
             'expression' => 'strtotime(date) >= strtotime("-1 week") && strtotime(date) <= strtotime("now")',
@@ -330,7 +330,7 @@ describe('RuleEvaluator', function () {
         expect($result->passed)->toBeTrue();
     });
 
-    it('handles complex mathematical expressions', function () {
+    it('handles complex mathematical expressions', function (): void {
         $rule = Rule::factory()->make([
             'name' => 'math_rule',
             'expression' => 'pow(base, 2) + floor(decimal) == 30 && sqrt(number) >= 2',

@@ -7,9 +7,9 @@ class ActionHandlerNotFoundException extends \RuntimeException
     public function __construct(
         string $actionType,
         int $code = 0,
-        ?\Throwable $previous = null
+        ?\Throwable $throwable = null
     ) {
         $message = sprintf('No handler found for action type: %s', $actionType);
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, $code, $throwable);
     }
 }

@@ -21,36 +21,31 @@ class RuleEngineServiceProvider extends PackageServiceProvider
             ->name('laravel-rule-engine')
             ->hasConfigFile()
             ->hasTranslations()
-            ->hasViews()
-            ->hasMigration('create_laravel_rule_engine_table')
+            ->discoversMigrations()
             ->hasCommand(RuleEngineCommand::class);
     }
 
     public function packageRegistered(): void
     {
-        $this->app->singleton(ActionRegistry::class, function ($app) {
-            $registry = new ActionRegistry;
+        $this->app->singleton(ActionRegistry::class, function ($app): \Thuraaung\RuleEngine\Actions\ActionRegistry {
+            $actionRegistry = new ActionRegistry;
 
             foreach (config('rule-engine.custom_handlers', []) as $type => $handlerClass) {
                 $handler = $app->make($handlerClass);
-                $registry->register($type, $handler);
+                $actionRegistry->register($type, $handler);
             }
 
-            return $registry;
+            return $actionRegistry;
         });
 
-        $this->app->bind(RuleActionHandler::class, function ($app) {
-            return new RuleActionHandler(
-                $app->make(ActionRegistry::class),
-                config('rule-engine.throw_on_error', false)
-            );
-        });
+        $this->app->bind(RuleActionHandler::class, fn($app): \Thuraaung\RuleEngine\Actions\RuleActionHandler => new RuleActionHandler(
+            $app->make(ActionRegistry::class),
+            config('rule-engine.throw_on_error', false)
+        ));
 
-        $this->app->singleton(RuleEngineManager::class, function ($app) {
-            return new RuleEngineManager(
-                $app->make(RuleEngine::class),
-                $app->make(RuleEngineRegistrar::class)
-            );
-        });
+        $this->app->singleton(RuleEngineManager::class, fn($app): \Thuraaung\RuleEngine\RuleEngineManager => new RuleEngineManager(
+            $app->make(RuleEngine::class),
+            $app->make(RuleEngineRegistrar::class)
+        ));
     }
 }

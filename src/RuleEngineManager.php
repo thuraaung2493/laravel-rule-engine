@@ -19,13 +19,13 @@ class RuleEngineManager
         $this->registrar->register($type, $handler);
     }
 
-    public function evaluateGroup(EvaluationOptions $options): EvaluationResult
+    public function evaluateGroup(EvaluationOptions $evaluationOptions): EvaluationResult
     {
-        return $this->engine->evaluateGroup($options);
+        return $this->engine->evaluateGroup($evaluationOptions);
     }
 
-    public function evaluateGroups(EvaluationOptions $options): MultiGroupEvaluationResult
+    public function evaluateGroups(EvaluationOptions $evaluationOptions): MultiGroupEvaluationResult
     {
-        return $this->engine->evaluateGroups($options);
+        return $this->engine->evaluateGroups($evaluationOptions);
     }
 }

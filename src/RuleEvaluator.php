@@ -28,9 +28,9 @@ class RuleEvaluator
     {
         collect(config('rule-engine.expression_providers', []))
             ->filter(
-                fn ($provider) => class_exists($provider) && is_subclass_of($provider, ExpressionFunctionProviderInterface::class)
+                fn ($provider): bool => class_exists($provider) && is_subclass_of($provider, ExpressionFunctionProviderInterface::class)
             )
-            ->each(function ($provider) {
+            ->each(function ($provider): void {
                 $this->el->registerProvider(app($provider, ['el' => $this->el]));
             });
     }
@@ -40,15 +40,15 @@ class RuleEvaluator
      *
      * @return Collection<RuleResult>
      */
-    public function evaluateRules(RuleGroup $group, array $data): Collection
+    public function evaluateRules(RuleGroup $ruleGroup, array $data): Collection
     {
         $results = collect();
 
-        $group->rules->each(function (Rule $rule) use ($data, $group, $results) {
-            $result = $this->evaluateRule($rule, $data);
-            $results->push($result);
+        $ruleGroup->rules->each(function (Rule $rule) use ($data, $ruleGroup, $results) {
+            $ruleResult = $this->evaluateRule($rule, $data);
+            $results->push($ruleResult);
 
-            if (EvaluationLogic::FAIL_FAST->is($group->evaluation_logic) && ! $result->passed) {
+            if (EvaluationLogic::FAIL_FAST->is($ruleGroup->evaluation_logic) && ! $ruleResult->passed) {
                 return false;
             }
         });
@@ -64,9 +64,9 @@ class RuleEvaluator
         try {
             $passed = (bool) $this->el->evaluate($rule->expression, $data);
             $error = null;
-        } catch (\Throwable $e) {
+        } catch (\Throwable $throwable) {
             $passed = false;
-            $error = $e->getMessage();
+            $error = $throwable->getMessage();
         }
 
         return RuleResult::create($passed, $rule, $error);

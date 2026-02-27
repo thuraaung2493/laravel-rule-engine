@@ -41,37 +41,37 @@ class EvaluationResult
     public function failedRules(): Collection
     {
         return $this->rules
-            ->filter(fn ($rule) => ! $rule['passed'])
+            ->filter(fn(RuleResult $ruleResult): bool => ! $ruleResult->passed)
             ->values();
     }
 
     public function rulesWithExceptions(): Collection
     {
         return $this->rules
-            ->filter(fn ($rule) => ! empty($rule['error']))
+            ->filter(fn(RuleResult $ruleResult): bool => $ruleResult->error !== null && $ruleResult->error !== '' && $ruleResult->error !== '0')
             ->values();
     }
 
     public function formatFailedRulesMessages(): Collection
     {
         return $this->failedRules()
-            ->map(function ($rule) {
-                if (! empty($rule['error'])) {
+            ->map(function (RuleResult $ruleResult) {
+                if ($ruleResult->error !== null && $ruleResult->error !== '' && $ruleResult->error !== '0') {
                     return __('rule-engine::messages.rule_failed_error', [
-                        'rule' => $rule['rule'],
-                        'error' => $rule['error'],
+                        'rule' => $ruleResult->rule,
+                        'error' => $ruleResult->error,
                     ]);
                 }
 
-                if (! empty($rule['error_message'])) {
+                if ($ruleResult->error_message !== null && $ruleResult->error_message !== '' && $ruleResult->error_message !== '0') {
                     return __('rule-engine::messages.rule_failed', [
-                        'rule' => $rule['rule'],
-                        'message' => $rule['error_message'],
+                        'rule' => $ruleResult->rule,
+                        'message' => $ruleResult->error_message,
                     ]);
                 }
 
                 return __('rule-engine::messages.rule_failed_no_message', [
-                    'rule' => $rule['rule'],
+                    'rule' => $ruleResult->rule,
                 ]);
             })
             ->values();
@@ -85,11 +85,11 @@ class EvaluationResult
     public function extractActionsFromResult(): Collection
     {
         return $this->rules
-            ->filter(fn ($rule) => $rule['passed'])
-            ->filter(fn ($rule) => $rule['action_type'] !== null)
-            ->map(fn ($rule) => [
-                'action_type' => $rule['action_type'],
-                'action_value' => $rule['action_value'],
+            ->filter(fn(RuleResult $ruleResult): bool => $ruleResult->passed)
+            ->filter(fn(RuleResult $ruleResult): bool => $ruleResult->action_type !== null)
+            ->map(fn(RuleResult $ruleResult): array => [
+                'action_type' => $ruleResult->action_type,
+                'action_value' => $ruleResult->action_value,
             ])
             ->values();
     }

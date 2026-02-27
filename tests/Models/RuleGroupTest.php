@@ -7,24 +7,24 @@ use Thuraaung\RuleEngine\Models\RuleGroup;
 
 uses(RefreshDatabase::class);
 
-describe('RuleGroup Model', function () {
-    beforeEach(function () {
+describe('RuleGroup Model', function (): void {
+    beforeEach(function (): void {
         $this->ruleGroup = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
         ]);
     });
 
-    it('has fillable attributes', function () {
+    it('has fillable attributes', function (): void {
         expect($this->ruleGroup->name)->toBe('test_group');
         expect($this->ruleGroup->evaluation_logic)->toBe(EvaluationLogic::ALL);
     });
 
-    it('casts evaluation_logic to enum', function () {
+    it('casts evaluation_logic to enum', function (): void {
         expect($this->ruleGroup->evaluation_logic)->toBeInstanceOf(EvaluationLogic::class);
     });
 
-    it('has rules relationship', function () {
+    it('has rules relationship', function (): void {
         $rule = Rule::factory()->create([
             'rule_group_id' => $this->ruleGroup->id,
             'active' => true,
@@ -35,7 +35,7 @@ describe('RuleGroup Model', function () {
         expect($this->ruleGroup->rules->first()->id)->toBe($rule->id);
     });
 
-    it('only returns active rules ordered by priority desc', function () {
+    it('only returns active rules ordered by priority desc', function (): void {
         Rule::factory()->create([
             'rule_group_id' => $this->ruleGroup->id,
             'active' => false,

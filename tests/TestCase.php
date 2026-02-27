@@ -13,7 +13,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Thuraaung\\RuleEngine\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName): string => 'Thuraaung\\RuleEngine\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 
@@ -29,7 +29,7 @@ class TestCase extends Orchestra
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 
-    public function getEnvironmentSetUp($app)
+    protected function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
         config()->set('database.connections.testing', [

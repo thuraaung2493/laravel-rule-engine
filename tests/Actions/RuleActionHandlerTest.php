@@ -7,18 +7,18 @@ use Thuraaung\RuleEngine\Actions\ActionResult;
 use Thuraaung\RuleEngine\Actions\Contracts\ActionHandlerInterface;
 use Thuraaung\RuleEngine\Actions\RuleActionHandler;
 
-describe('Rule Action Handler', function () {
-    beforeEach(function () {
+describe('Rule Action Handler', function (): void {
+    beforeEach(function (): void {
         $this->registry = new ActionRegistry;
         $this->handler = new RuleActionHandler($this->registry);
     });
 
-    it('handles registered actions', function () {
-        $action = Mockery::mock(ActionHandlerInterface::class);
-        $action->shouldReceive('supports')->with('test_action')->andReturnTrue();
-        $action->shouldReceive('handle')->with(['foo' => 'bar'], [])->andReturn(ActionResult::success(['foo' => 'bar']));
+    it('handles registered actions', function (): void {
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturnTrue();
+        $mock->shouldReceive('handle')->with(['foo' => 'bar'], [])->andReturn(ActionResult::success(['foo' => 'bar']));
 
-        $this->registry->register('test_action', $action);
+        $this->registry->register('test_action', $mock);
         $context = collect();
 
         $result = $this->handler->handle('test_action', ['foo' => 'bar'], $context);
@@ -27,13 +27,13 @@ describe('Rule Action Handler', function () {
         expect($result->get('foo'))->toBe('bar');
     });
 
-    it('accumulates context values', function () {
-        $action = Mockery::mock(ActionHandlerInterface::class);
-        $action->shouldReceive('supports')->with('test_action')->andReturnTrue();
-        $action->shouldReceive('handle')->with([], collect(['initial' => 'value']))
+    it('accumulates context values', function (): void {
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturnTrue();
+        $mock->shouldReceive('handle')->with([], ['initial' => 'value'])
             ->andReturn(ActionResult::success(['key' => 'value']));
 
-        $this->registry->register('test_action', $action);
+        $this->registry->register('test_action', $mock);
         $context = collect(['initial' => 'value']);
 
         $result = $this->handler->handle('test_action', [], $context);
@@ -44,12 +44,12 @@ describe('Rule Action Handler', function () {
         ]);
     });
 
-    it('handles action errors gracefully', function () {
-        $action = Mockery::mock(ActionHandlerInterface::class);
-        $action->shouldReceive('supports')->with('test_action')->andReturnTrue();
-        $action->shouldReceive('handle')->with([], collect())->andThrow(new \RuntimeException('Action failed'));
+    it('handles action errors gracefully', function (): void {
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturnTrue();
+        $mock->shouldReceive('handle')->with([], collect())->andThrow(new \RuntimeException('Action failed'));
 
-        $this->registry->register('test_action', $action);
+        $this->registry->register('test_action', $mock);
         $context = collect();
 
         $result = $this->handler->handle('test_action', [], $context);
@@ -58,12 +58,12 @@ describe('Rule Action Handler', function () {
         expect($result->isEmpty())->toBeTrue();
     });
 
-    it('handles action with no context gracefully', function () {
-        $action = Mockery::mock(ActionHandlerInterface::class);
-        $action->shouldReceive('supports')->with('test_action')->andReturnTrue();
-        $action->shouldReceive('handle')->with([], collect())->andReturn(ActionResult::success());
+    it('handles action with no context gracefully', function (): void {
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturnTrue();
+        $mock->shouldReceive('handle')->with([], collect())->andReturn(ActionResult::success());
 
-        $this->registry->register('test_action', $action);
+        $this->registry->register('test_action', $mock);
         $context = collect();
 
         $result = $this->handler->handle('test_action', [], $context);
@@ -72,7 +72,7 @@ describe('Rule Action Handler', function () {
         expect($result->isEmpty())->toBeTrue();
     });
 
-    it('logs warnings for unknown actions', function () {
+    it('logs warnings for unknown actions', function (): void {
         Log::shouldReceive('warning')
             ->once()
             ->with('Unknown action type: unknown_action', ['value' => ['test' => 'data']]);
@@ -81,50 +81,50 @@ describe('Rule Action Handler', function () {
         $this->handler->handle('unknown_action', ['test' => 'data'], $context);
     });
 
-    it('handles action errors with proper logging', function () {
+    it('handles action errors with proper logging', function (): void {
         Log::shouldReceive('error')
             ->once()
             ->with("Action 'test_action' failed: Test error");
 
-        $handler = Mockery::mock(ActionHandlerInterface::class);
-        $handler->shouldReceive('supports')->with('test_action')->andReturn(true);
-        $handler->shouldReceive('handle')->andReturn(ActionResult::failure('Test error'));
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturn(true);
+        $mock->shouldReceive('handle')->andReturn(ActionResult::failure('Test error'));
 
-        $this->registry->register('test_action', $handler);
+        $this->registry->register('test_action', $mock);
 
         $context = collect([]);
         $this->handler->handle('test_action', [], $context);
     });
 
-    it('throws exception for unknown action when configured', function () {
+    it('throws exception for unknown action when configured', function (): void {
         $handler = new RuleActionHandler($this->registry, true);
 
         $context = collect([]);
-        expect(function () use ($handler, $context) {
+        expect(function () use ($handler, $context): void {
             $handler->handle('unknown_action', [], $context);
         })->toThrow(\InvalidArgumentException::class, 'Unknown action type: unknown_action');
     });
 
-    it('throws exception for action failure when configured', function () {
+    it('throws exception for action failure when configured', function (): void {
         $handler = new RuleActionHandler($this->registry, true);
 
-        $actionHandler = Mockery::mock(ActionHandlerInterface::class);
-        $actionHandler->shouldReceive('supports')->with('test_action')->andReturn(true);
-        $actionHandler->shouldReceive('handle')->andReturn(ActionResult::failure('Test error'));
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturn(true);
+        $mock->shouldReceive('handle')->andReturn(ActionResult::failure('Test error'));
 
-        $this->registry->register('test_action', $actionHandler);
+        $this->registry->register('test_action', $mock);
 
         $context = collect([]);
-        expect(fn () => $handler->handle('test_action', [], $context))
+        expect(fn (): \Illuminate\Support\Collection => $handler->handle('test_action', [], $context))
             ->toThrow(\RuntimeException::class, "Action 'test_action' failed: Test error");
     });
 
-    it('preserves original context on action failure', function () {
-        $handler = Mockery::mock(ActionHandlerInterface::class);
-        $handler->shouldReceive('supports')->with('test_action')->andReturn(true);
-        $handler->shouldReceive('handle')->andReturn(ActionResult::failure('Test error'));
+    it('preserves original context on action failure', function (): void {
+        $mock = Mockery::mock(ActionHandlerInterface::class);
+        $mock->shouldReceive('supports')->with('test_action')->andReturn(true);
+        $mock->shouldReceive('handle')->andReturn(ActionResult::failure('Test error'));
 
-        $this->registry->register('test_action', $handler);
+        $this->registry->register('test_action', $mock);
 
         $context = collect(['original' => 'value']);
         $this->handler->handle('test_action', [], $context);

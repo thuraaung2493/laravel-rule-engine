@@ -3,8 +3,8 @@
 use Thuraaung\RuleEngine\Dtos\EvaluationResult;
 use Thuraaung\RuleEngine\Dtos\MultiGroupEvaluationResult;
 
-describe('MultiGroupEvaluationResult DTO', function () {
-    it('creates with all parameters', function () {
+describe('MultiGroupEvaluationResult DTO', function (): void {
+    it('creates with all parameters', function (): void {
         $groupResults = collect([
             'group1' => new EvaluationResult(passed: true),
             'group2' => new EvaluationResult(passed: false),
@@ -23,7 +23,7 @@ describe('MultiGroupEvaluationResult DTO', function () {
         expect($result->error)->toBe('Some error');
     });
 
-    it('has default values', function () {
+    it('has default values', function (): void {
         $result = new MultiGroupEvaluationResult(
             passed: true,
             groupResults: collect([])
@@ -35,7 +35,7 @@ describe('MultiGroupEvaluationResult DTO', function () {
         expect($result->error)->toBeNull();
     });
 
-    it('returns failed groups', function () {
+    it('returns failed groups', function (): void {
         $groupResults = collect([
             'group1' => new EvaluationResult(passed: true),
             'group2' => new EvaluationResult(passed: false),
@@ -51,7 +51,7 @@ describe('MultiGroupEvaluationResult DTO', function () {
         expect($failedGroups->toArray())->toBe(['group2', 'group3']);
     });
 
-    it('returns empty when no failed groups', function () {
+    it('returns empty when no failed groups', function (): void {
         $groupResults = [
             'group1' => new EvaluationResult(passed: true),
             'group2' => new EvaluationResult(passed: true),
@@ -65,7 +65,7 @@ describe('MultiGroupEvaluationResult DTO', function () {
         expect($result->failedGroups()->isEmpty())->toBeTrue();
     });
 
-    it('checks if has failed groups', function () {
+    it('checks if has failed groups', function (): void {
         $passedResult = new MultiGroupEvaluationResult(
             passed: true,
             groupResults: collect([

@@ -21,9 +21,9 @@ class RuleEngine
         protected RuleActionHandler $actionHandler
     ) {}
 
-    public function evaluateGroup(EvaluationOptions $options): EvaluationResult
+    public function evaluateGroup(EvaluationOptions $evaluationOptions): EvaluationResult
     {
-        $groupNames = collect($options->groupNames);
+        $groupNames = collect($evaluationOptions->groupNames);
 
         if ($groupNames->count() !== 1) {
             return EvaluationResult::error('evaluateGroup expects exactly one groupName in options.');
@@ -33,59 +33,57 @@ class RuleEngine
 
         $group = $this->getRuleGroup($groupName);
 
-        if (! $group) {
-            return EvaluationResult::error("Rule group '{$groupName}' not found.");
+        if (!$group instanceof \Thuraaung\RuleEngine\Models\RuleGroup) {
+            return EvaluationResult::error(sprintf("Rule group '%s' not found.", $groupName));
         }
 
         try {
-            $evaluatedRules = $this->evaluator->evaluateRules($group, $options->data);
+            $evaluatedRules = $this->evaluator->evaluateRules($group, $evaluationOptions->data);
 
             $context = $this->dispatchActions($evaluatedRules);
             $passed = $this->determineGroupResult($group->evaluation_logic, $evaluatedRules);
-        } catch (\Exception $e) {
-            return EvaluationResult::error($e->getMessage());
+        } catch (\Exception $exception) {
+            return EvaluationResult::error($exception->getMessage());
         }
 
         return EvaluationResult::create($passed, $evaluatedRules, $context);
     }
 
-    public function evaluateGroups(EvaluationOptions $options): MultiGroupEvaluationResult
+    public function evaluateGroups(EvaluationOptions $evaluationOptions): MultiGroupEvaluationResult
     {
-        $groups = $this->getRuleGroups($options->groupNames, $options->sortByPriority);
+        $groups = $this->getRuleGroups($evaluationOptions->groupNames, $evaluationOptions->sortByPriority);
         $results = new GroupResultsCollection;
 
         foreach ($groups as $group) {
             $singleGroupOptions = new EvaluationOptions(
                 groupNames: [$group->name],
-                data: $options->data,
+                data: $evaluationOptions->data,
                 logic: $group->evaluation_logic
             );
             $result = $this->evaluateGroup($singleGroupOptions);
             $results->addResult($group->name, $result);
 
-            if ($options->logic->is(EvaluationLogic::FAIL_FAST) && ! $result->passed()) {
+            if ($evaluationOptions->logic->is(EvaluationLogic::FAIL_FAST) && ! $result->passed()) {
                 return $results->failFast($group->name);
             }
 
-            if ($options->logic->is(EvaluationLogic::ANY) && $result->passed()) {
+            if ($evaluationOptions->logic->is(EvaluationLogic::ANY) && $result->passed()) {
                 return $results->passAny();
             }
         }
 
-        return $results->toMultiGroupResult($options->logic);
+        return $results->toMultiGroupResult($evaluationOptions->logic);
     }
 
-    protected function dispatchActions(BaseCollection $evaluatedRules): BaseCollection
+    protected function dispatchActions(BaseCollection $baseCollection): BaseCollection
     {
-        return $evaluatedRules
-            ->filter(fn (RuleResult $rule) => $rule->passed && $rule->action_type)
-            ->reduce(function (BaseCollection $context, RuleResult $rule) {
-                return $this->actionHandler->handle(
-                    $rule->action_type,
-                    $rule->action_value ?? [],
-                    $context
-                );
-            }, collect());
+        return $baseCollection
+            ->filter(fn (RuleResult $ruleResult): bool => $ruleResult->passed && $ruleResult->action_type)
+            ->reduce(fn(BaseCollection $baseCollection, RuleResult $ruleResult): \Illuminate\Support\Collection => $this->actionHandler->handle(
+                $ruleResult->action_type,
+                $ruleResult->action_value ?? [],
+                $baseCollection
+            ), collect());
     }
 
     protected function getRuleGroups(array $names, bool $sortByPriority = false): Collection
@@ -93,7 +91,7 @@ class RuleEngine
         return RuleGroup::query()
             ->with('rules')
             ->whereIn('name', $names)
-            ->when($sortByPriority, fn (Builder $q) => $q->orderByDesc('priority'))
+            ->when($sortByPriority, fn (Builder $builder) => $builder->orderByDesc('priority'))
             ->get(['name', 'evaluation_logic']);
     }
 
@@ -105,12 +103,12 @@ class RuleEngine
             ->first();
     }
 
-    protected function determineGroupResult(EvaluationLogic $logic, BaseCollection $evaluatedRules): bool
+    protected function determineGroupResult(EvaluationLogic $evaluationLogic, BaseCollection $baseCollection): bool
     {
-        return match ($logic) {
-            EvaluationLogic::ALL => $evaluatedRules->every(fn (RuleResult $r) => $r->passed),
-            EvaluationLogic::ANY => $evaluatedRules->contains(fn (RuleResult $r) => $r->passed),
-            EvaluationLogic::FAIL_FAST => $evaluatedRules->every(fn (RuleResult $r) => $r->passed),
+        return match ($evaluationLogic) {
+            EvaluationLogic::ALL => $baseCollection->every(fn (RuleResult $ruleResult): bool => $ruleResult->passed),
+            EvaluationLogic::ANY => $baseCollection->contains(fn (RuleResult $ruleResult): bool => $ruleResult->passed),
+            EvaluationLogic::FAIL_FAST => $baseCollection->every(fn (RuleResult $ruleResult): bool => $ruleResult->passed),
             default => false,
         };
     }

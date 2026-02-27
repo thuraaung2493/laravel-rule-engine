@@ -10,21 +10,21 @@ class ActionRegistry
 {
     protected array $handlers = [];
 
-    public function register(string $actionType, ActionHandlerInterface $handler): void
+    public function register(string $actionType, ActionHandlerInterface $actionHandler): void
     {
-        if (! $handler->supports($actionType)) {
+        if (! $actionHandler->supports($actionType)) {
             throw new \InvalidArgumentException(
-                "Handler does not support action type: {$actionType}"
+                'Handler does not support action type: ' . $actionType
             );
         }
 
-        $this->handlers[$actionType] = $handler;
+        $this->handlers[$actionType] = $actionHandler;
     }
 
     public function registerMultiple(array $handlers): void
     {
-        collect($handlers)->each(function (ActionHandlerInterface $handler, string $actionType) {
-            $this->register($actionType, $handler);
+        collect($handlers)->each(function (ActionHandlerInterface $actionHandler, string $actionType): void {
+            $this->register($actionType, $actionHandler);
         });
     }
 

@@ -11,18 +11,18 @@ use Thuraaung\RuleEngine\RuleEvaluator;
 
 uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-describe('RuleEngine', function () {
-    beforeEach(function () {
+describe('RuleEngine', function (): void {
+    beforeEach(function (): void {
         $this->evaluator = Mockery::mock(RuleEvaluator::class);
         $this->actionHandler = Mockery::mock(RuleActionHandler::class);
         $this->engine = new RuleEngine($this->evaluator, $this->actionHandler);
     });
 
-    afterEach(function () {
+    afterEach(function (): void {
         Mockery::close();
     });
 
-    it('evaluates single group successfully', function () {
+    it('evaluates single group successfully', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -40,9 +40,7 @@ describe('RuleEngine', function () {
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
-            ->withArgs(function (RuleGroup $receivedGroup, array $data) use ($group) {
-                return $receivedGroup->id === $group->id && $data === ['test' => 'data'];
-            })
+            ->withArgs(fn(RuleGroup $ruleGroup, array $data): bool => $ruleGroup->id === $group->id && $data === ['test' => 'data'])
             ->andReturn($evaluatedRules);
 
         $this->actionHandler->shouldReceive('handle')
@@ -60,7 +58,7 @@ describe('RuleEngine', function () {
         expect($result->rules)->toBe($evaluatedRules);
     });
 
-    it('fails when multiple group names provided to evaluateGroup', function () {
+    it('fails when multiple group names provided to evaluateGroup', function (): void {
         $options = new EvaluationOptions(
             groupNames: ['group1', 'group2'],
             data: ['test' => 'data']
@@ -72,7 +70,7 @@ describe('RuleEngine', function () {
         expect($result->error)->toBe('evaluateGroup expects exactly one groupName in options.');
     });
 
-    it('fails when group not found', function () {
+    it('fails when group not found', function (): void {
         $options = new EvaluationOptions(
             groupNames: ['nonexistent_group'],
             data: ['test' => 'data']
@@ -84,7 +82,7 @@ describe('RuleEngine', function () {
         expect($result->error)->toBe("Rule group 'nonexistent_group' not found.");
     });
 
-    it('determines group result with ALL logic fails when one rule fails', function () {
+    it('determines group result with ALL logic fails when one rule fails', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -113,7 +111,7 @@ describe('RuleEngine', function () {
         expect($result->passed())->toBe(false);
     });
 
-    it('determines group result with ANY logic passes when one rule passes', function () {
+    it('determines group result with ANY logic passes when one rule passes', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ANY,
@@ -142,7 +140,7 @@ describe('RuleEngine', function () {
         expect($result->passed())->toBe(true);
     });
 
-    it('determines group result with ANY logic fails when all rules fail', function () {
+    it('determines group result with ANY logic fails when all rules fail', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ANY,
@@ -171,7 +169,7 @@ describe('RuleEngine', function () {
         expect($result->passed())->toBe(false);
     });
 
-    it('determines group result with FAIL_FAST logic', function () {
+    it('determines group result with FAIL_FAST logic', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::FAIL_FAST,
@@ -200,7 +198,7 @@ describe('RuleEngine', function () {
         expect($result->passed())->toBe(true);
     });
 
-    it('dispatches actions for passed rules', function () {
+    it('dispatches actions for passed rules', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -232,7 +230,7 @@ describe('RuleEngine', function () {
         $this->engine->evaluateGroup($options);
     });
 
-    it('evaluates multiple groups successfully', function () {
+    it('evaluates multiple groups successfully', function (): void {
         $group1 = RuleGroup::factory()->create([
             'name' => 'group1',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -272,7 +270,7 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveKey('group2');
     });
 
-    it('evaluates multiple groups with FAIL_FAST logic', function () {
+    it('evaluates multiple groups with FAIL_FAST logic', function (): void {
         $group1 = RuleGroup::factory()->create([
             'name' => 'group1',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -309,7 +307,7 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveKey('group2');
     });
 
-    it('evaluates multiple groups with ANY logic', function () {
+    it('evaluates multiple groups with ANY logic', function (): void {
         $group1 = RuleGroup::factory()->create([
             'name' => 'group1',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -346,7 +344,7 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveKey('group2');
     });
 
-    it('handles empty group names', function () {
+    it('handles empty group names', function (): void {
         $options = new EvaluationOptions(
             groupNames: [],
             data: ['test' => 'data']
@@ -358,7 +356,7 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveCount(0);
     });
 
-    it('handles nonexistent groups in evaluateGroups', function () {
+    it('handles nonexistent groups in evaluateGroups', function (): void {
         $options = new EvaluationOptions(
             groupNames: ['nonexistent_group'],
             data: ['test' => 'data']
@@ -370,7 +368,7 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveCount(0);
     });
 
-    it('handles group with no rules', function () {
+    it('handles group with no rules', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'empty_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -395,7 +393,7 @@ describe('RuleEngine', function () {
         expect($result->rules)->toHaveCount(0);
     });
 
-    it('handles evaluation with empty data', function () {
+    it('handles evaluation with empty data', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -407,9 +405,7 @@ describe('RuleEngine', function () {
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
-            ->withArgs(function (RuleGroup $receivedGroup, array $data) use ($group) {
-                return $receivedGroup->id === $group->id && empty($data);
-            })
+            ->withArgs(fn(RuleGroup $ruleGroup, array $data): bool => $ruleGroup->id === $group->id && $data === [])
             ->andReturn($evaluatedRules);
 
         $options = new EvaluationOptions(
@@ -423,7 +419,7 @@ describe('RuleEngine', function () {
         expect($result->passed())->toBe(true);
     });
 
-    it('handles rule evaluation exception', function () {
+    it('handles rule evaluation exception', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -443,7 +439,7 @@ describe('RuleEngine', function () {
         expect($result->error)->toBe('Expression evaluation failed');
     });
 
-    it('handles mixed success and failure in multiple groups', function () {
+    it('handles mixed success and failure in multiple groups', function (): void {
         $group1 = RuleGroup::factory()->create([
             'name' => 'group1',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -478,7 +474,7 @@ describe('RuleEngine', function () {
         expect($result->groupResults)->toHaveCount(2);
     });
 
-    it('handles multiple actions for a single rule group', function () {
+    it('handles multiple actions for a single rule group', function (): void {
         $group = RuleGroup::factory()->create([
             'name' => 'test_group',
             'evaluation_logic' => EvaluationLogic::ALL,
@@ -507,10 +503,8 @@ describe('RuleEngine', function () {
 
         $this->actionHandler->shouldReceive('handle')
             ->twice()
-            ->withArgs(function ($type, $value) {
-                return ($type === 'email' && $value === ['to' => 'test@example.com']) ||
-                    ($type === 'sms' && $value === ['number' => '123456']);
-            });
+            ->withArgs(fn($type, $value): bool => ($type === 'email' && $value === ['to' => 'test@example.com']) ||
+                ($type === 'sms' && $value === ['number' => '123456']));
 
         $options = new EvaluationOptions(
             groupNames: ['test_group'],
