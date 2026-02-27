@@ -27,6 +27,7 @@ enum EvaluationLogic: string
         if (is_string($logic)) {
             return $this->value === $logic;
         }
+
         return $this->value === $logic->value;
     }
 }

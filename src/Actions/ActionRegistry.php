@@ -14,7 +14,7 @@ class ActionRegistry
     {
         if (! $actionHandler->supports($actionType)) {
             throw new \InvalidArgumentException(
-                'Handler does not support action type: ' . $actionType
+                'Handler does not support action type: '.$actionType
             );
         }
 

@@ -38,12 +38,12 @@ class RuleEngineServiceProvider extends PackageServiceProvider
             return $actionRegistry;
         });
 
-        $this->app->bind(RuleActionHandler::class, fn($app): \Thuraaung\RuleEngine\Actions\RuleActionHandler => new RuleActionHandler(
+        $this->app->bind(RuleActionHandler::class, fn ($app): \Thuraaung\RuleEngine\Actions\RuleActionHandler => new RuleActionHandler(
             $app->make(ActionRegistry::class),
             config('rule-engine.throw_on_error', false)
         ));
 
-        $this->app->singleton(RuleEngineManager::class, fn($app): \Thuraaung\RuleEngine\RuleEngineManager => new RuleEngineManager(
+        $this->app->singleton(RuleEngineManager::class, fn ($app): \Thuraaung\RuleEngine\RuleEngineManager => new RuleEngineManager(
             $app->make(RuleEngine::class),
             $app->make(RuleEngineRegistrar::class)
         ));

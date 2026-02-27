@@ -33,7 +33,7 @@ class RuleEngine
 
         $group = $this->getRuleGroup($groupName);
 
-        if (!$group instanceof \Thuraaung\RuleEngine\Models\RuleGroup) {
+        if (! $group instanceof \Thuraaung\RuleEngine\Models\RuleGroup) {
             return EvaluationResult::error(sprintf("Rule group '%s' not found.", $groupName));
         }
 
@@ -79,7 +79,7 @@ class RuleEngine
     {
         return $baseCollection
             ->filter(fn (RuleResult $ruleResult): bool => $ruleResult->passed && $ruleResult->action_type)
-            ->reduce(fn(BaseCollection $baseCollection, RuleResult $ruleResult): \Illuminate\Support\Collection => $this->actionHandler->handle(
+            ->reduce(fn (BaseCollection $baseCollection, RuleResult $ruleResult): \Illuminate\Support\Collection => $this->actionHandler->handle(
                 $ruleResult->action_type,
                 $ruleResult->action_value ?? [],
                 $baseCollection

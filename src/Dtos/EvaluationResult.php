@@ -41,14 +41,14 @@ class EvaluationResult
     public function failedRules(): Collection
     {
         return $this->rules
-            ->filter(fn(RuleResult $ruleResult): bool => ! $ruleResult->passed)
+            ->filter(fn (RuleResult $ruleResult): bool => ! $ruleResult->passed)
             ->values();
     }
 
     public function rulesWithExceptions(): Collection
     {
         return $this->rules
-            ->filter(fn(RuleResult $ruleResult): bool => $ruleResult->error !== null && $ruleResult->error !== '' && $ruleResult->error !== '0')
+            ->filter(fn (RuleResult $ruleResult): bool => $ruleResult->error !== null && $ruleResult->error !== '' && $ruleResult->error !== '0')
             ->values();
     }
 
@@ -85,9 +85,9 @@ class EvaluationResult
     public function extractActionsFromResult(): Collection
     {
         return $this->rules
-            ->filter(fn(RuleResult $ruleResult): bool => $ruleResult->passed)
-            ->filter(fn(RuleResult $ruleResult): bool => $ruleResult->action_type !== null)
-            ->map(fn(RuleResult $ruleResult): array => [
+            ->filter(fn (RuleResult $ruleResult): bool => $ruleResult->passed)
+            ->filter(fn (RuleResult $ruleResult): bool => $ruleResult->action_type !== null)
+            ->map(fn (RuleResult $ruleResult): array => [
                 'action_type' => $ruleResult->action_type,
                 'action_value' => $ruleResult->action_value,
             ])

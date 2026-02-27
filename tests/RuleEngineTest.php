@@ -40,7 +40,7 @@ describe('RuleEngine', function (): void {
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
-            ->withArgs(fn(RuleGroup $ruleGroup, array $data): bool => $ruleGroup->id === $group->id && $data === ['test' => 'data'])
+            ->withArgs(fn (RuleGroup $ruleGroup, array $data): bool => $ruleGroup->id === $group->id && $data === ['test' => 'data'])
             ->andReturn($evaluatedRules);
 
         $this->actionHandler->shouldReceive('handle')
@@ -405,7 +405,7 @@ describe('RuleEngine', function (): void {
 
         $this->evaluator->shouldReceive('evaluateRules')
             ->once()
-            ->withArgs(fn(RuleGroup $ruleGroup, array $data): bool => $ruleGroup->id === $group->id && $data === [])
+            ->withArgs(fn (RuleGroup $ruleGroup, array $data): bool => $ruleGroup->id === $group->id && $data === [])
             ->andReturn($evaluatedRules);
 
         $options = new EvaluationOptions(
@@ -503,7 +503,7 @@ describe('RuleEngine', function (): void {
 
         $this->actionHandler->shouldReceive('handle')
             ->twice()
-            ->withArgs(fn($type, $value): bool => ($type === 'email' && $value === ['to' => 'test@example.com']) ||
+            ->withArgs(fn ($type, $value): bool => ($type === 'email' && $value === ['to' => 'test@example.com']) ||
                 ($type === 'sms' && $value === ['number' => '123456']));
 
         $options = new EvaluationOptions(

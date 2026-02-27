@@ -34,7 +34,7 @@ class PhpFunctionsProvider implements ExpressionFunctionProviderInterface
 
     public function getFunctions(): array
     {
-        $functions = collect($this->functions)->map(fn(string $function): \Symfony\Component\ExpressionLanguage\ExpressionFunction => new ExpressionFunction(
+        $functions = collect($this->functions)->map(fn (string $function): \Symfony\Component\ExpressionLanguage\ExpressionFunction => new ExpressionFunction(
             $function,
             fn (): string => $function,
             fn ($arguments, ...$params) => $function(...$params)
@@ -51,7 +51,7 @@ class PhpFunctionsProvider implements ExpressionFunctionProviderInterface
                     }
 
                     try {
-                        return array_filter($array, fn($item): mixed => $this->el->evaluate($callback, ['p' => $item]));
+                        return array_filter($array, fn ($item): mixed => $this->el->evaluate($callback, ['p' => $item]));
                     } catch (\Throwable) {
                         return [];
                     }

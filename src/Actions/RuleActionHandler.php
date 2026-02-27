@@ -40,7 +40,7 @@ class RuleActionHandler
 
     protected function handleUnknownAction(string $type, array $value): void
     {
-        $message = 'Unknown action type: ' . $type;
+        $message = 'Unknown action type: '.$type;
 
         if ($this->throwOnError) {
             throw new \InvalidArgumentException($message);
@@ -51,7 +51,7 @@ class RuleActionHandler
 
     protected function handleActionError(string $type, ?string $error): void
     {
-        $message = sprintf("Action '%s' failed", $type).($error !== null && $error !== '' && $error !== '0' ? ': ' . $error : '');
+        $message = sprintf("Action '%s' failed", $type).($error !== null && $error !== '' && $error !== '0' ? ': '.$error : '');
         Log::error($message);
 
         if ($this->throwOnError) {
